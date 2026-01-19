@@ -1,236 +1,298 @@
-
-import sqlite3
 import hashlib
-from typing import Optional, List, Tuple
+from typing import Optional, List, Dict
+from pymongo import MongoClient
+from datetime import datetime
+import os
+
 class DatabaseManager:
-    def __init__(self, db_name: str = "smart_records.db"):
-        self.db_name = db_name
-        self.create_tables()
-    def get_connection(self):
-        return sqlite3.connect(self.db_name)
+    def __init__(self, connection_string: str = None):
+        self.connection_string = connection_string or os.getenv('MONGODB_URI')
 
-    def create_tables(self):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        # Users table
-        cursor.execute('''
-                CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT UNIQUE NOT NULL,
-                    password TEXT NOT NULL,
-                    full_name TEXT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            ''')
-        # Records table
-        cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS records (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        user_id INTEGER NOT NULL,
-                        title TEXT NOT NULL,
-                        description TEXT,
-                        category TEXT,
-                        date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        status TEXT DEFAULT 'Active',
-                        FOREIGN KEY (user_id) REFERENCES users (id)
-                    )
-                ''')
-        conn.commit()
-        conn.close()
+        if not self.connection_string:
+            raise ValueError(
+                "MongoDB connection string not provided. "
+                "Please provide it as a parameter or set MONGODB_URI environment variable."
+            )
 
-        print("✓ Database tables created successfully")
+        try:
+            self.client = MongoClient(self.connection_string)
+            self.db = self.client['smart_records_db']
+
+            self.users = self.db['users']
+            self.records = self.db['records']
+
+            self.client.admin.command('ping')
+            print("✓ MongoDB connection successful!")
+
+        except Exception as e:
+            print(f"MongoDB connection failed: {e}")
+            raise
 
     @staticmethod
     def hash_password(password: str) -> str:
         return hashlib.sha256(password.encode()).hexdigest()
-    
 
-    def create_user(self, username: str, password: str, full_name: str) -> Tuple[bool, str]:
+    def create_user(self, username: str, password: str, full_name: str) -> tuple[bool, str]:
+        """
+        Create a new user account
+
+        Args:
+            username: Unique username
+            password: User password (will be hashed)
+            full_name: User's full name
+
+        Returns:
+            Tuple of (success: bool, message: str)
+        """
         try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            hashed_password = self.hash_password(password)
-            cursor.execute('''
-                        INSERT INTO users (username, password, full_name)
-                        VALUES (?, ?, ?)
-                    ''', (username, hashed_password, full_name))
-            conn.commit()
-            conn.close()
-            return True, "Account created successfully!"
-        except sqlite3.IntegrityError:
+            if self.users.find_one({'username': username}):
                 return False, "Username already exists!"
+
+            hashed_password = self.hash_password(password)
+
+            user_doc = {
+                'username': username,
+                'password': hashed_password,
+                'full_name': full_name,
+                'created_at': datetime.utcnow()
+            }
+
+            self.users.insert_one(user_doc)
+            return True, "Account created successfully!"
+
         except Exception as e:
             return False, f"Error: {str(e)}"
-        
-        
-    def authenticate_user(self, username: str, password: str) -> Tuple[bool, Optional[int], str]:
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            hashed_password = self.hash_password(password)
-            cursor.execute('''
-                        SELECT id, full_name FROM users 
-                        WHERE username = ? AND password = ?
-                    ''', (username, hashed_password))
-            result = cursor.fetchone()
-            conn.close()
 
-            if result:
-                return True, result[0], f"Welcome back, {result[1]}!"
+    def authenticate_user(self, username: str, password: str) -> tuple[bool, Optional[str], str]:
+        """
+        Authenticate user login
+
+        Args:
+            username: Username
+            password: Password to verify
+
+        Returns:
+            Tuple of (success: bool, user_id: str or None, message: str)
+        """
+        try:
+            hashed_password = self.hash_password(password)
+
+            user = self.users.find_one({
+                'username': username,
+                'password': hashed_password
+            })
+
+            if user:
+                user_id = str(user['_id'])
+                return True, user_id, f"Welcome back, {user['full_name']}!"
             else:
                 return False, None, "Invalid username or password!"
-            
+
         except Exception as e:
             return False, None, f"Error: {str(e)}"
-        
 
-    def create_record(self, user_id: int, title: str, description: str, category: str) -> Tuple[bool, str]:
+    def create_record(self, user_id: str, title: str, description: str, category: str) -> tuple[bool, str]:
+        """
+        Create a new record
+
+        Args:
+            user_id: ID of the user creating the record
+            title: Record title
+            description: Record description
+            category: Record category
+
+        Returns:
+            Tuple of (success: bool, message: str)
+        """
         try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute('''
-                            INSERT INTO records (user_id, title, description, category)
-                            VALUES (?, ?, ?, ?)
-                        ''', (user_id, title, description, category))
-            conn.commit()
-            conn.close()
+            record_doc = {
+                'user_id': user_id,
+                'title': title,
+                'description': description,
+                'category': category,
+                'date_added': datetime.utcnow(),
+                'status': 'Active'
+            }
+
+            self.records.insert_one(record_doc)
             return True, "Record created successfully!"
+
         except Exception as e:
             return False, f"Error: {str(e)}"
-        
-    def read_all_records(self, user_id: Optional[int] = None) -> List[Tuple]:
+
+    def read_all_records(self, user_id: Optional[str] = None) -> List[tuple]:
+        """
+        Read all records for a user
+
+        Args:
+            user_id: User ID to filter records (if None, returns all records)
+
+        Returns:
+            List of tuples containing record data
+        """
         try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            if user_id:
-                cursor.execute('''
-                                SELECT id, title, description, category, date_added, status
-                                FROM records WHERE user_id = ?
-                                ORDER BY date_added DESC
-                            ''', (user_id,))
-            else:
-                cursor.execute('''
-                                SELECT id, title, description, category, date_added, status
-                                FROM records ORDER BY date_added DESC
-                            ''')
-            results = cursor.fetchall()
-            conn.close()
+            query = {'user_id': user_id} if user_id else {}
+
+            cursor = self.records.find(query).sort('date_added', -1)
+
+            results = []
+            for record in cursor:
+                results.append((
+                    str(record['_id']),
+                    record['title'],
+                    record['description'],
+                    record['category'],
+                    record['date_added'].strftime('%Y-%m-%d %H:%M:%S'),
+                    record['status']
+                ))
+
             return results
+
         except Exception as e:
             print(f"Error reading records: {e}")
             return []
-        
 
-    def update_record(self, record_id: int, title: str, description: str, category: str, status: str) -> Tuple[bool, str]:
+    def update_record(self, record_id: str, title: str, description: str,
+                     category: str, status: str) -> tuple[bool, str]:
+        """
+        Update an existing record
+
+        Args:
+            record_id: ID of the record to update
+            title: New title
+            description: New description
+            category: New category
+            status: New status
+
+        Returns:
+            Tuple of (success: bool, message: str)
+        """
         try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute('''
-                            UPDATE records 
-                            SET title = ?, description = ?, category = ?, status = ?
-                            WHERE id = ?
-                        ''', (title, description, category, status, record_id))
-            conn.commit()
-            conn.close()
-            if cursor.rowcount > 0:
+            from bson.objectid import ObjectId
+
+            result = self.records.update_one(
+                {'_id': ObjectId(record_id)},
+                {'$set': {
+                    'title': title,
+                    'description': description,
+                    'category': category,
+                    'status': status
+                }}
+            )
+
+            if result.modified_count > 0 or result.matched_count > 0:
                 return True, "Record updated successfully!"
             else:
                 return False, "Record not found!"
+
         except Exception as e:
             return False, f"Error: {str(e)}"
-        
 
-    def delete_record(self, record_id: int) -> Tuple[bool, str]:
+    def delete_record(self, record_id: str) -> tuple[bool, str]:
+        """
+        Delete a record
+
+        Args:
+            record_id: ID of the record to delete
+
+        Returns:
+            Tuple of (success: bool, message: str)
+        """
         try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            cursor.execute('DELETE FROM records WHERE id = ?', (record_id,))
-            conn.commit()
-            conn.close()
-            if cursor.rowcount > 0:
+            from bson.objectid import ObjectId
+
+            result = self.records.delete_one({'_id': ObjectId(record_id)})
+
+            if result.deleted_count > 0:
                 return True, "Record deleted successfully!"
             else:
                 return False, "Record not found!"
+
         except Exception as e:
             return False, f"Error: {str(e)}"
-        
-    def search_records(self, user_id: int, search_term: str) -> List[Tuple]:
+
+    def search_records(self, user_id: str, search_term: str) -> List[tuple]:
+        """
+        Search records by title or description
+
+        Args:
+            user_id: User ID to filter records
+            search_term: Term to search for
+
+        Returns:
+            List of tuples containing matching records
+        """
         try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            search_pattern = f"%{search_term}%"
-            cursor.execute('''
-                            SELECT id, title, description, category, date_added, status
-                            FROM records 
-                            WHERE user_id = ? AND (title LIKE ? OR description LIKE ?)
-                            ORDER BY date_added DESC
-                        ''', (user_id, search_pattern, search_pattern))
-            results = cursor.fetchall()
-            conn.close()
+            query = {
+                'user_id': user_id,
+                '$or': [
+                    {'title': {'$regex': search_term, '$options': 'i'}},
+                    {'description': {'$regex': search_term, '$options': 'i'}}
+                ]
+            }
+
+            cursor = self.records.find(query).sort('date_added', -1)
+
+            results = []
+            for record in cursor:
+                results.append((
+                    str(record['_id']),
+                    record['title'],
+                    record['description'],
+                    record['category'],
+                    record['date_added'].strftime('%Y-%m-%d %H:%M:%S'),
+                    record['status']
+                ))
+
             return results
+
         except Exception as e:
             print(f"Error searching records: {e}")
             return []
-        
 
-    # ============= REPORT GENERATION DATA =============
-    def get_summary_stats(self, user_id: int) -> dict:
+    def get_summary_stats(self, user_id: str) -> Dict:
+        
+        """
+        Get summary statistics for a user's records
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            Dictionary containing statistics
+        """
         try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-            # Total records
-            cursor.execute('SELECT COUNT(*) FROM records WHERE user_id = ?', (user_id,))
-            6
-            total = cursor.fetchone()[0]
-            # Active records
-            cursor.execute('SELECT COUNT(*) FROM records WHERE user_id = ? AND status = "Active"', (user_id,))
-            active = cursor.fetchone()[0]
-            # Records by category
-            cursor.execute('''
-                            SELECT category, COUNT(*) 
-                            FROM records WHERE user_id = ?
-                            GROUP BY category
-                        ''', (user_id,))
-            by_category = cursor.fetchall()
-            conn.close()
+            total = self.records.count_documents({'user_id': user_id})
+
+            active = self.records.count_documents({
+                'user_id': user_id,
+                'status': 'Active'
+            })
+
+            pipeline = [
+                {'$match': {'user_id': user_id}},
+                {'$group': {
+                    '_id': '$category',
+                    'count': {'$sum': 1}
+                }}
+            ]
+
+            category_results = self.records.aggregate(pipeline)
+            by_category = {item['_id']: item['count'] for item in category_results}
+
             return {
-            'total': total,
-            'active': active,
-            'inactive': total - active,
-            'by_category': dict(by_category)
+                'total': total,
+                'active': active,
+                'inactive': total - active,
+                'by_category': by_category
             }
+
         except Exception as e:
             print(f"Error getting stats: {e}")
             return {'total': 0, 'active': 0, 'inactive': 0, 'by_category': {}}
 
-
-# ============= TESTING CODE =============
-if __name__ == "__main__":
-# Test the database manager
-    db = DatabaseManager()
-    # Test 1: Create a user
-    print("\n=== Test 1: Create User ===")
-    success, msg = db.create_user("kilani", "kilani123", "Ibrahim Kilani")
-    print(msg)
-    # Test 2: Authenticate user
-    print("\n=== Test 2: Authenticate User ===")
-    success, user_id, msg = db.authenticate_user("kilani", "kilani123")
-    print(msg)
-    if success:
-        # Test 3: Create records
-        print("\n=== Test 3: Create Records ===")
-        db.create_record(user_id, "First Record", "This is a test", "General")
-        db.create_record(user_id, "Second Record", "Another test", "Important")
-        print("Records created!")
-        # Test 4: Read all records
-        print("\n=== Test 4: Read Records ===")
-        
-        records = db.read_all_records(user_id)
-        for record in records:
-            print(f"ID: {record[0]}, Title: {record[1]}, Category: {record[3]}")
-    # Test 5: Get statistics
-    print("\n=== Test 5: Statistics ===")
-    stats = db.get_summary_stats(user_id)
-    print(f"Total records: {stats['total']}")
-    print(f"Active: {stats['active']}")
-    print(f"By category: {stats['by_category']}")
+    def close(self):
+        """Close MongoDB connection"""
+        if hasattr(self, 'client'):
+            self.client.close()
+            print("✓ MongoDB connection closed")

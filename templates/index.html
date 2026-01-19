@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Smart Records System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <header class="bg-white border-b border-gray-200">
+      <div
+        class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between"
+      >
+        <h1 class="text-2xl font-bold text-gray-900">THE RECORDERRR</h1>
+        <a
+          href="{{ url_for('logout') }}"
+          class="px-2 py-1 border border-red-500 text-red-500 text-sm rounded-md hover:text-white hover:bg-red-500 transition"
+        >
+          Logout
+        </a>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Dashboard</h2>
+        <a
+          href="{{ url_for('add_record') }}"
+          class="px-2 py-1 bg-green-800 text-white rounded-md hover:bg-green-800 transition"
+        >
+          + Add New Record
+        </a>
+      </div>
+
+      <div class="bg-white rounded-md border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <h2 class="text-xl font-bold text-gray-900">
+            Your Records
+            <span
+              class="ml-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-full"
+              >{{ records|length }}</span
+            >
+          </h2>
+        </div>
+
+        {% if records %}
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-900 text-white">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium uppercase">
+                  ID
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium uppercase">
+                  Title
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium uppercase">
+                  Description
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium uppercase">
+                  Category
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium uppercase">
+                  Date Added
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium uppercase">
+                  Status
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium uppercase">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              {% for record in records %}
+              <tr class="hover:bg-gray-50 transition">
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ record[0][:8] }}
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-sm font-semibold text-gray-900">
+                    {{ record[1] }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-600">
+                  {% if record[2]|length > 80 %} {{ record[2][:80] }}... {% else
+                  %} {{ record[2] }} {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                  <span
+                    class="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+                    >{{ record[3] }}</span
+                  >
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-600">
+                  {{ record[4][:10] if record[4]|length > 10 else record[4] }}
+                </td>
+                <td class="px-6 py-4">
+                  <span
+                    class="px-3 py-1 text-xs rounded-full {% if record[5] == 'Active' %}bg-green-100 text-green-700{% elif record[5] == 'Completed' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-700{% endif %}"
+                  >
+                    {{ record[5] }}
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex gap-2">
+                    <a
+                      href="{{ url_for('edit_record', record_id=record[0]) }}"
+                      class="px-3 py-1 bg-gray-900 text-white text-xs rounded hover:bg-gray-800 transition"
+                    >
+                      Edit
+                    </a>
+                    <form
+                      method="POST"
+                      action="{{ url_for('delete_record', record_id=record[0]) }}"
+                      class="inline"
+                      onsubmit="
+                        return confirm(
+                          'Are you sure you want to delete this record?',
+                        );
+                      "
+                    >
+                      <button
+                        type="submit"
+                        class="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition"
+                      >
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-16">
+          <div class="text-6xl mb-4 opacity-30">📋</div>
+          <h3 class="text-xl font-semibold text-gray-600 mb-2">
+            No Records Yet
+          </h3>
+          <p class="text-gray-500 mb-6">Start by creating your first record</p>
+          <a
+            href="{{ url_for('add_record') }}"
+            class="inline-block px-6 py-3 bg-green-800 text-white rounded-md hover:bg-green-700 transition"
+          >
+            + Create Your First Record
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </main>
+  </body>
+</html>
