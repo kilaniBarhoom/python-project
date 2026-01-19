@@ -15,13 +15,13 @@
         <h1 class="text-2xl font-bold text-gray-900">THE RECORDERRR</h1>
         <div class="flex gap-3 items-center">
           <a
-            href="{{ url_for('dashboard') }}"
+            href="{{ url_for('record.dashboard') }}"
             class="px-3 py-1 border border-gray-500 text-gray-700 text-sm rounded-md hover:bg-gray-100 transition"
           >
             Dashboard
           </a>
           <a
-            href="{{ url_for('logout') }}"
+            href="{{ url_for('auth.logout') }}"
             class="px-3 py-1 border border-red-500 text-red-500 text-sm rounded-md hover:text-white hover:bg-red-500 transition"
           >
             Logout
@@ -39,7 +39,7 @@
           </p>
         </div>
         <a
-          href="{{ url_for('export_report') }}"
+          href="{{ url_for('report.export_report') }}"
           class="px-4 py-2 bg-green-800 text-white rounded-md hover:bg-green-700 transition flex items-center gap-2"
         >
           <svg
@@ -81,6 +81,22 @@
           <div class="text-sm text-gray-600 mb-1">Inactive</div>
           <div class="text-3xl font-bold text-gray-600">
             {{ stats.status_breakdown.inactive }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Comment Statistics -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <div class="text-sm text-gray-600 mb-1">My Comments</div>
+          <div class="text-3xl font-bold text-purple-600">
+            {{ stats.comments.total_comments }}
+          </div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <div class="text-sm text-gray-600 mb-1">Comments on My Records</div>
+          <div class="text-3xl font-bold text-indigo-600">
+            {{ stats.comments.comments_on_my_records }}
           </div>
         </div>
       </div>
@@ -203,6 +219,47 @@
                   </span>
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-600">{{ record.date }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Top Commented Records -->
+      {% if stats.comments.top_commented_records %}
+      <div class="bg-white rounded-lg border border-gray-200 overflow-hidden mt-8">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Most Commented Records
+          </h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  Record Title
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  Comments
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              {% for item in stats.comments.top_commented_records %}
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ item.record_title }}
+                </td>
+                <td class="px-6 py-4">
+                  <span
+                    class="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-semibold"
+                  >
+                    {{ item.comment_count }}
+                  </span>
+                </td>
               </tr>
               {% endfor %}
             </tbody>

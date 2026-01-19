@@ -1,14 +1,34 @@
-## Project Overview
+## Project Structure
 
-This is a python full crud app. It allows users to create, read, update, and delete records.
-
-The app is built using the following tech stack:
-
-- **Language**: Python
-- **Backend**: Flask
-- **Database**: MongoDB
-- **Frontend**: HTML, CSS
-- **Templating Engine**: Jinja2
-- **ORM**: PyMongo
-
-## The team members worked on the project in parallel and contributed to different parts of the application.
+```
+Project/
+├── app.py                    # Main application entry point
+├── config.py                 # Configuration management
+│
+├── models/                   # Data layer
+│   ├── __init__.py
+│   ├── database.py          # MongoDB connection (Singleton)
+│   ├── user_model.py        # User authentication & management
+│   ├── record_model.py      # Record CRUD operations
+│   └── comment_model.py     # Comment CRUD operations
+│
+├── routes/                   # Route handlers (Blueprints)
+│   ├── __init__.py
+│   ├── auth_routes.py       # Authentication endpoints
+│   ├── record_routes.py     # Record CRUD endpoints
+│   ├── comment_routes.py    # Comment CRUD endpoints
+│   └── report_routes.py     # Analytics & PDF export
+│
+├── templates/                # HTML templates
+│   ├── login.html
+│   ├── signup.html
+│   ├── index.html           # Dashboard
+│   ├── add.html             # Add record
+│   ├── edit.html            # Edit record
+│   ├── view_record.html     # View record with comments
+│   └── reports.html         # Analytics dashboard
+│
+├── static/                   # Static files (CSS, JS, images)
+│
+└── README.md
+```

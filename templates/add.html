@@ -18,7 +18,7 @@
         <div class="px-8 py-6">
           <form
             method="POST"
-            action="{{ url_for('add_record') }}"
+            action="{{ url_for('record.add_record') }}"
             class="space-y-6"
           >
             <div>
@@ -81,7 +81,7 @@
                 Save Record
               </button>
               <a
-                href="{{ url_for('dashboard') }}"
+                href="{{ url_for('record.dashboard') }}"
                 class="flex-1 px-6 py-3 border border-neutral-200 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium text-center"
               >
                 ← Back to Dashboard
