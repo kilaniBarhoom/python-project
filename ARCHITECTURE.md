@@ -67,7 +67,7 @@
 └──────────┘                     └──────────┘
      │                                │
      │                                │
-     │ 1:N                           │ 1:N
+     │ 1:N                            │ 1:N
      │                                │
      ▼                                ▼
 ┌─────────────────────────────────────────┐
@@ -168,7 +168,7 @@
 ## Performance Optimizations
 
 1. **Database Queries**
-   - Indexed fields (_id, user_id, record_id)
+   - Indexed fields (\\\_id, user_id, record_id)
    - Aggregation pipelines for statistics
    - Sorted queries for recent data
 
