@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from db import DatabaseManager
 from functools import wraps
 from dotenv import load_dotenv
+from datetime import datetime
 import os
 
 load_dotenv()
@@ -172,6 +173,45 @@ def delete_record(record_id):
         flash(message, 'error')
 
     return redirect(url_for('dashboard'))
+
+@app.route('/reports')
+@login_required
+def reports():
+    user_id = session.get('user_id')
+    username = session.get('username')
+
+    # Get comprehensive statistics
+    stats = db.get_summary_stats(user_id)
+
+    return render_template('reports.html', username=username, stats=stats)
+
+@app.route('/export-report')
+@login_required
+def export_report():
+    from flask import send_file
+    from io import BytesIO
+
+    user_id = session.get('user_id')
+    username = session.get('username')
+
+    # Generate PDF report
+    success, message, pdf_bytes = db.generate_pdf_report(user_id, username)
+
+    if success:
+        # Create a BytesIO object from the PDF bytes
+        pdf_buffer = BytesIO(pdf_bytes)
+        pdf_buffer.seek(0)
+
+        # Send the PDF as a download
+        return send_file(
+            pdf_buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'report_{username}_{datetime.now().strftime("%Y%m%d")}.pdf'
+        )
+    else:
+        flash(message, 'error')
+        return redirect(url_for('reports'))
 
 @app.route('/logout')
 @login_required

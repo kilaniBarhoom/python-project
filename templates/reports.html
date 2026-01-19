@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports & Analytics - Smart Records System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <header class="bg-white border-b border-gray-200">
+      <div
+        class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between"
+      >
+        <h1 class="text-2xl font-bold text-gray-900">THE RECORDERRR</h1>
+        <div class="flex gap-3 items-center">
+          <a
+            href="{{ url_for('dashboard') }}"
+            class="px-3 py-1 border border-gray-500 text-gray-700 text-sm rounded-md hover:bg-gray-100 transition"
+          >
+            Dashboard
+          </a>
+          <a
+            href="{{ url_for('logout') }}"
+            class="px-3 py-1 border border-red-500 text-red-500 text-sm rounded-md hover:text-white hover:bg-red-500 transition"
+          >
+            Logout
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">Reports & Analytics</h2>
+          <p class="text-sm text-gray-600 mt-1">
+            Generated on {{ stats.generated_at }}
+          </p>
+        </div>
+        <a
+          href="{{ url_for('export_report') }}"
+          class="px-4 py-2 bg-green-800 text-white rounded-md hover:bg-green-700 transition flex items-center gap-2"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          Export PDF
+        </a>
+      </div>
+
+      <!-- Overview Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <div class="text-sm text-gray-600 mb-1">Total Records</div>
+          <div class="text-3xl font-bold text-gray-900">{{ stats.total }}</div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <div class="text-sm text-gray-600 mb-1">Active</div>
+          <div class="text-3xl font-bold text-green-600">
+            {{ stats.status_breakdown.active }}
+          </div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <div class="text-sm text-gray-600 mb-1">Completed</div>
+          <div class="text-3xl font-bold text-blue-600">
+            {{ stats.status_breakdown.completed }}
+          </div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <div class="text-sm text-gray-600 mb-1">Inactive</div>
+          <div class="text-3xl font-bold text-gray-600">
+            {{ stats.status_breakdown.inactive }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Status Distribution Chart -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            Status Distribution
+          </h3>
+          <canvas id="statusChart"></canvas>
+        </div>
+
+        <!-- Category Distribution Chart -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            Category Distribution
+          </h3>
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Time-based Statistics -->
+      <div class="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+          Recent Activity
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="text-sm text-gray-600 mb-1">Today</div>
+            <div class="text-2xl font-bold text-gray-900">
+              {{ stats.time_stats.today }}
+            </div>
+            <div class="text-xs text-gray-500 mt-1">records created</div>
+          </div>
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="text-sm text-gray-600 mb-1">This Week</div>
+            <div class="text-2xl font-bold text-gray-900">
+              {{ stats.time_stats.this_week }}
+            </div>
+            <div class="text-xs text-gray-500 mt-1">records created</div>
+          </div>
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="text-sm text-gray-600 mb-1">This Month</div>
+            <div class="text-2xl font-bold text-gray-900">
+              {{ stats.time_stats.this_month }}
+            </div>
+            <div class="text-xs text-gray-500 mt-1">records created</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Date Range Info -->
+      {% if stats.date_range.first_record %}
+      <div class="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Date Range</h3>
+        <div class="flex justify-between items-center">
+          <div>
+            <div class="text-sm text-gray-600">First Record</div>
+            <div class="text-lg font-semibold text-gray-900">
+              {{ stats.date_range.first_record }}
+            </div>
+          </div>
+          <div class="text-gray-400">→</div>
+          <div>
+            <div class="text-sm text-gray-600">Latest Record</div>
+            <div class="text-lg font-semibold text-gray-900">
+              {{ stats.date_range.last_record }}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Recent Records Table -->
+      {% if stats.recent_records %}
+      <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Recent Records (Last 5)
+          </h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  Title
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  Category
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  Status
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  Date
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              {% for record in stats.recent_records %}
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 text-sm text-gray-900">
+                  {{ record.title }}
+                </td>
+                <td class="px-6 py-4">
+                  <span
+                    class="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+                  >
+                    {{ record.category }}
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <span
+                    class="px-3 py-1 text-xs rounded-full {% if record.status == 'Active' %}bg-green-100 text-green-700{% elif record.status == 'Completed' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-700{% endif %}"
+                  >
+                    {{ record.status }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-600">{{ record.date }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+    </main>
+
+    <script>
+      // Status Chart
+      const statusCtx = document.getElementById("statusChart").getContext("2d");
+      new Chart(statusCtx, {
+        type: "doughnut",
+        data: {
+          labels: ["Active", "Completed", "Inactive"],
+          datasets: [
+            {
+              data: [
+                {{ stats.status_breakdown.active }},
+                {{ stats.status_breakdown.completed }},
+                {{ stats.status_breakdown.inactive }},
+              ],
+              backgroundColor: [
+                "rgb(34, 197, 94)",
+                "rgb(59, 130, 246)",
+                "rgb(156, 163, 175)",
+              ],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: "bottom",
+            },
+          },
+        },
+      });
+
+      // Category Chart
+      const categoryCtx = document
+        .getElementById("categoryChart")
+        .getContext("2d");
+      new Chart(categoryCtx, {
+        type: "bar",
+        data: {
+          labels: [
+            {% for category in stats.by_category.keys() %}
+              "{{ category }}",
+            {% endfor %}
+          ],
+          datasets: [
+            {
+              label: "Records",
+              data: [
+                {% for count in stats.by_category.values() %}
+                  {{ count }},
+                {% endfor %}
+              ],
+              backgroundColor: "rgb(34, 197, 94)",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
