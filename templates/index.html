@@ -60,6 +60,9 @@
                   ID
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium uppercase">
+                  User name
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium uppercase">
                   Title
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium uppercase">
@@ -89,25 +92,30 @@
                   <div class="text-sm font-semibold text-gray-900">
                     {{ record[1] }}
                   </div>
+                </td> 
+                 <td class="px-6 py-4">
+                  <div class="text-sm font-semibold text-gray-900">
+                    {{ record[2] }}
+                  </div>
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-600">
-                  {% if record[2]|length > 80 %} {{ record[2][:80] }}... {% else
-                  %} {{ record[2] }} {% endif %}
+                  {% if record[3]|length > 80 %} {{ record[3][:80] }}... {% else
+                  %} {{ record[3] }} {% endif %}
                 </td>
                 <td class="px-6 py-4">
                   <span
                     class="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
-                    >{{ record[3] }}</span
+                    >{{ record[4] }}</span
                   >
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-600">
-                  {{ record[4][:10] if record[4]|length > 10 else record[4] }}
+                  {{ record[5][:10] if record[5]|length > 10 else record[5] }}
                 </td>
                 <td class="px-6 py-4">
                   <span
-                    class="px-3 py-1 text-xs rounded-full {% if record[5] == 'Active' %}bg-green-100 text-green-700{% elif record[5] == 'Completed' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-700{% endif %}"
+                    class="px-3 py-1 text-xs rounded-full {% if record[6] == 'Active' %}bg-green-100 text-green-700{% elif record[6] == 'Completed' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-700{% endif %}"
                   >
-                    {{ record[5] }}
+                    {{ record[6] }}
                   </span>
                 </td>
                 <td class="px-6 py-4">
