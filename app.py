@@ -26,8 +26,7 @@ def create_app():
 
 
 if __name__ == '__main__':
-    # Get environment from env variable or default to development
-    env = os.getenv('FLASK_ENV', 'development')
+
     app = create_app()
 
     print("✓ Flask application starting...")
