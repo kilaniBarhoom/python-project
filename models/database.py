@@ -3,6 +3,8 @@ Database connection manager
 """
 from pymongo import MongoClient
 import os
+import ssl
+import certifi
 
 
 class Database:
@@ -21,7 +23,10 @@ class Database:
     def __init__(self):
         """Initialize database connection"""
         if self._client is None:
-            self.connect()
+            try:
+                self.connect()
+            except Exception as e:
+                print(f"⚠ Failed to initialize database: {str(e)[:50]}...")
 
     def connect(self, connection_string: str = None):
         """
@@ -39,16 +44,37 @@ class Database:
             )
 
         try:
-            self._client = MongoClient(connection_string)
+            # Create SSL context with proper certificate handling
+            ssl_context = ssl.create_default_context(cafile=certifi.where())
+            ssl_context.check_hostname = True
+            ssl_context.verify_mode = ssl.CERT_REQUIRED
+            
+            # Configure connection with SSL context
+            self._client = MongoClient(
+                connection_string,
+                tlsCAFile=certifi.where(),
+                serverSelectionTimeoutMS=10000,
+                connectTimeoutMS=10000,
+                socketTimeoutMS=10000,
+                retryWrites=False
+            )
             self._db = self._client['smart_records_db']
 
             # Test connection
-            self._client.admin.command('ping')
-            print("✓ MongoDB connection successful!")
+            try:
+                self._client.admin.command('ping')
+                print("✓ MongoDB connection successful!")
+            except Exception as ping_error:
+                print(f"⚠ MongoDB connection created but ping failed")
+                print(f"  Error: {str(ping_error)[:100]}...")
+                print("⚠ App will continue running. Database features may be limited.")
 
         except Exception as e:
-            print(f"MongoDB connection failed: {e}")
-            raise
+            print(f"⚠ MongoDB connection initialization failed")
+            print(f"  Error: {str(e)[:100]}...")
+            print("⚠ App starting without database. Some features may not work.")
+            self._client = None
+            self._db = None
 
     @property
     def db(self):

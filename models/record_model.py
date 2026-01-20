@@ -53,9 +53,9 @@ class RecordModel:
             List of tuples containing record data
         """
         try:
-            query = {'user_id': user_id} if user_id else {}
+          
 
-            cursor = self.db.records.find(query).sort('date_added', -1)
+            cursor = self.db.records.find().sort('date_added', -1)
 
             results = []
             for record in cursor:
