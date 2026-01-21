@@ -5,9 +5,10 @@
 - Python
 - Flask
 - MongoDB
-- HTMML
+- HTML
 - Tailwind CSS
 - Nodejs
+
 
 ```
 Project/
