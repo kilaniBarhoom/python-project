@@ -1,4 +1,13 @@
 ## Project Structure
+### This is a simple note taking recorder system, where all users can add records, ,and all users write comments on each others records.
+
+### Tech stack:
+- Python
+- Flask
+- MongoDB
+- HTMML
+- Tailwind CSS
+- Nodejs
 
 ```
 Project/
