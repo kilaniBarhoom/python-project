@@ -78,7 +78,7 @@ class SignupView(BaseView):
         )
         heading.pack(pady=(0, 30))
 
-        # Full Name field
+        # Full Name
         fullname_label = tk.Label(
             form_container,
             text="Full Name",
@@ -93,7 +93,7 @@ class SignupView(BaseView):
         self.fullname_entry.pack(pady=(0, 20))
         self.fullname_entry.focus()
 
-        # Username field
+        # Username
         username_label = tk.Label(
             form_container,
             text="Username",
@@ -117,7 +117,7 @@ class SignupView(BaseView):
         )
         username_helper.pack(fill='x', pady=(0, 20))
 
-        # Password field
+        # Password 
         password_label = tk.Label(
             form_container,
             text="Password",
@@ -141,7 +141,7 @@ class SignupView(BaseView):
         )
         password_helper.pack(fill='x', pady=(0, 20))
 
-        # Confirm Password field
+        # Confirm Password
         confirm_password_label = tk.Label(
             form_container,
             text="Confirm Password",

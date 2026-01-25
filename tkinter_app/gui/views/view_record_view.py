@@ -21,6 +21,9 @@ class ViewRecordView(BaseView):
     """
     View Record view showing record details and comments
     Allows adding, editing, and deleting comments
+
+    صفحة الريكورد تعرض تفاصيل الريكورد والتعليقات
+    تسمح بإضافة، تعديل، وحذف التعليقات
     """
 
     def __init__(self, parent, controller):
