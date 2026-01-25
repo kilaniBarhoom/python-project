@@ -1,10 +1,8 @@
 """
-Smart Records System - Main Application
+Main Application
 """
 from flask import Flask
 from config import Config
-import os
-
 # Import blueprints
 from routes import auth_bp, record_bp, comment_bp, report_bp
 

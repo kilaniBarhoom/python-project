@@ -16,6 +16,7 @@ comment_model = CommentModel()
 @login_required
 def reports():
     """Display comprehensive analytics dashboard"""
+    """عرض لوحة تحكم تحليلات شاملة"""
     user_id = session.get('user_id')
     username = session.get('username')
 
@@ -35,6 +36,7 @@ def reports():
 @login_required
 def export_report():
     """Export comprehensive report as PDF"""
+    """تصدير تقرير شامل بصيغة PDF"""
     user_id = session.get('user_id')
     username = session.get('username')
 

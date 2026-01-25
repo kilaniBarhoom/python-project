@@ -1,5 +1,10 @@
 """
 Database connection manager
+
+شرح بالعربية:
+هذا الملف مسؤول عن إدارة الاتصال بقاعدة البيانات MongoDB
+- يستخدم نمط Singleton للتأكد من وجود اتصال واحد فقط بقاعدة البيانات
+- يوفر طرق للاتصال بقاعدة البيانات والوصول إلى المجموعات (Collections)
 """
 from pymongo import MongoClient
 import os
@@ -16,6 +21,7 @@ class Database:
 
     def __new__(cls):
         """Singleton pattern to ensure one database connection"""
+        # Check if an instance already exists
         if cls._instance is None:
             cls._instance = super(Database, cls).__new__(cls)
         return cls._instance
@@ -49,7 +55,7 @@ class Database:
             ssl_context.check_hostname = True
             ssl_context.verify_mode = ssl.CERT_REQUIRED
             
-            # Configure connection with SSL context
+            # Configure connection with SSL context (security)
             self._client = MongoClient(
                 connection_string,
                 tlsCAFile=certifi.where(),
