@@ -17,14 +17,14 @@ Project/
 ├── app.py                    # Main application entry point
 ├── config.py                 # Configuration management
 │
-├── models/                   # Data layer
+├── models/                   # Data layer / Models / controllers / functions
 │   ├── __init__.py
 │   ├── database.py          # MongoDB connection (Singleton)
 │   ├── user_model.py        # User authentication & management
 │   ├── record_model.py      # Record CRUD operations
 │   └── comment_model.py     # Comment CRUD operations
 │
-├── routes/                   # Route handlers (Blueprints)
+├── routes/                   # Route handlers (Blueprints) (/مسارات) (/add, /edit, /view, /comments)
 │   ├── __init__.py
 │   ├── auth_routes.py       # Authentication endpoints
 │   ├── record_routes.py     # Record CRUD endpoints

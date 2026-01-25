@@ -74,38 +74,6 @@ class CommentModel:
             print(f"Error getting comments: {e}")
             return []
 
-    def get_comment_by_id(self, comment_id: str) -> Dict:
-        """
-        Get a single comment by ID
-
-        Args:
-            comment_id: Comment ID
-
-        Returns:
-            Comment dictionary or None
-        """
-        try:
-            comment = self.db.comments.find_one({'_id': ObjectId(comment_id)})
-            if not comment:
-                return None
-
-            user = self.db.users.find_one({'_id': ObjectId(comment['user_id'])})
-            username = user['username'] if user else 'Unknown'
-
-            return {
-                'id': str(comment['_id']),
-                'record_id': comment['record_id'],
-                'user_id': comment['user_id'],
-                'username': username,
-                'content': comment['content'],
-                'created_at': comment['created_at'].strftime('%Y-%m-%d %H:%M:%S'),
-                'updated_at': comment['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
-            }
-
-        except Exception as e:
-            print(f"Error getting comment: {e}")
-            return None
-
     def update_comment(self, comment_id: str, content: str, user_id: str) -> tuple[bool, str]:
         """
         Update a comment
@@ -173,6 +141,8 @@ class CommentModel:
         except Exception as e:
             return False, f"Error: {str(e)}"
 
+
+    # Report functions
     def get_comment_count_by_record(self, record_id: str) -> int:
         """
         Get the count of comments for a specific record
