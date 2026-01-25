@@ -1,0 +1,16 @@
+# Smart Records System - Tkinter Desktop Application
+# Requirements file for tkinter version
+
+# Core dependencies (shared with Flask app)
+pymongo>=4.6.0
+python-dotenv>=1.0.0
+certifi
+
+# PDF generation
+reportlab>=4.0.0
+
+# Charts and visualization
+matplotlib>=3.7.0
+
+# Note: tkinter is included with Python by default
+# No separate installation required for tkinter

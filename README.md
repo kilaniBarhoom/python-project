@@ -1,14 +1,16 @@
 ## Project Structure
-### This is a simple note taking recorder system, where all users can add records, ,and all users write comments on each others records.
+
+This is a simple note taking recorder system, where all users can add records, and all users write comments on each others records.
 
 ### Tech stack:
+
 - Python
 - Flask
 - MongoDB
 - HTML
 - Tailwind CSS
+- Nodejs- Tailwind CSS
 - Nodejs
-
 
 ```
 Project/
@@ -38,7 +40,7 @@ Project/
 │   ├── view_record.html     # View record with comments
 │   └── reports.html         # Analytics dashboard
 │
-├── static/                   # Static files (CSS, JS, images)
+├── static/                   # Static files (CSS, images)
 │
 └── README.md
 ```

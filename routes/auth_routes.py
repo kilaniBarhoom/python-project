@@ -28,7 +28,13 @@ def home():
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+
 def login():
+    """
+    User login route    
+    the auth bp is used to handle authentication-related routes such as login, signup, and logout.
+    what exactly does the blueprint do here?
+    """
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
